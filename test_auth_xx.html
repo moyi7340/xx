@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目 "xx" - API 测试页面 (认证)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin-top: 10px; }
+        input[type="text"], input[type="password"] { width: calc(100% - 22px); padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 15px; margin-top: 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background-color: #f4f4f4; padding: 15px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+        .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px dashed #eee; }
+        .section:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>项目 "xx" - API 测试页面 (用户认证)</h1>
+
+        <div class="section">
+            <h2>用户注册</h2>
+            <div>
+                <label for="regUsername">用户名:</label>
+                <input type="text" id="regUsername" placeholder="输入用户名">
+            </div>
+            <div>
+                <label for="regPassword">密码:</label>
+                <input type="password" id="regPassword" placeholder="输入密码">
+            </div>
+            <button onclick="testRegister()">注册</button>
+        </div>
+
+        <div class="section">
+            <h2>用户登录</h2>
+            <div>
+                <label for="loginUsername">用户名:</label>
+                <input type="text" id="loginUsername" placeholder="输入用户名">
+            </div>
+            <div>
+                <label for="loginPassword">密码:</label>
+                <input type="password" id="loginPassword" placeholder="输入密码">
+            </div>
+            <button onclick="testLogin()">登录</button>
+        </div>
+
+        <h2>API 响应:</h2>
+        <pre id="responseOutput">这里将显示服务器的响应...</pre>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api/auth'; // 你的后端API基础URL
+        const outputDiv = document.getElementById('responseOutput');
+
+        async function testRegister() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            outputDiv.textContent = '正在注册...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                const data = await response.json();
+                outputDiv.textContent = `状态码: ${response.status}\n\n响应内容:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                outputDiv.textContent = `请求失败: ${error}`;
+                console.error('注册错误:', error);
+            }
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            outputDiv.textContent = '正在登录...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                const data = await response.json();
+                outputDiv.textContent = `状态码: ${response.status}\n\n响应内容:\n${JSON.stringify(data, null, 2)}`;
+                if (data.token) {
+                    console.log("获取到的 Token:", data.token); // 可以在控制台查看 token
+                    // 你可以将 token 存储起来用于后续测试需要认证的接口
+                    // localStorage.setItem('authToken', data.token);
+                }
+            } catch (error) {
+                outputDiv.textContent = `请求失败: ${error}`;
+                console.error('登录错误:', error);
+            }
+        }
+    </script>
+</body>
+</html>

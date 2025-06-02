@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目 "xx" - API 测试页面 (收入总览)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .container { max-width: 700px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        h2, h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type="text"], input[type="number"] { width: calc(100% - 22px); padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        textarea { width: calc(100% - 22px); padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; min-height: 80px;}
+        button { padding: 10px 15px; margin-top: 15px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #138496; }
+        pre { background-color: #f4f4f4; padding: 15px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; margin-top: 10px;}
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px; background-color: #f9f9f9;}
+        .token-section { background-color: #fffacd; }
+        .form-group { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>项目 "xx" - API 测试页面 (收入总览)</h1>
+
+        <div class="section token-section">
+            <h3>身份认证 Token</h3>
+            <div class="form-group">
+                <label for="authToken">JWT Token:</label>
+                <textarea id="authToken" placeholder="从登录接口获取到的 Token 粘贴到这里"></textarea>
+                <small>请先通过认证测试页面登录并复制 Token。</small>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>月度收入总览</h2>
+            <div class="form-group">
+                <label for="monthlyYear">年份 (YYYY):</label>
+                <input type="number" id="monthlyYear" placeholder="例如: 2025" value="2025">
+            </div>
+            <div class="form-group">
+                <label for="monthlyMonth">月份 (MM):</label>
+                <input type="number" id="monthlyMonth" placeholder="例如: 5 (1-12)" value="5">
+            </div>
+            <button onclick="getMonthlySummary()">获取月度总览</button>
+        </div>
+
+        <div class="section">
+            <h2>年度收入总览</h2>
+            <div class="form-group">
+                <label for="yearlyYear">年份 (YYYY):</label>
+                <input type="number" id="yearlyYear" placeholder="例如: 2025" value="2025">
+            </div>
+            <button onclick="getYearlySummary()">获取年度总览</button>
+        </div>
+
+        <h2>API 响应:</h2>
+        <pre id="responseOutput">这里将显示服务器的响应...</pre>
+    </div>
+
+    <script>
+        const API_BASE_URL_SUMMARY = 'http://localhost:8000/api/summary';
+        const outputDiv = document.getElementById('responseOutput');
+
+        function getAuthToken() {
+            const token = document.getElementById('authToken').value;
+            if (!token) {
+                alert('请先粘贴有效的 JWT Token！');
+                return null;
+            }
+            return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        }
+
+        async function getMonthlySummary() {
+            const token = getAuthToken();
+            if (!token) return;
+
+            const year = document.getElementById('monthlyYear').value;
+            const month = document.getElementById('monthlyMonth').value;
+
+            if (!year || !month) {
+                alert('请输入年份和月份！');
+                return;
+            }
+            if (parseInt(month) < 1 || parseInt(month) > 12) {
+                alert('月份必须在 1 到 12 之间！');
+                return;
+            }
+
+
+            outputDiv.textContent = '正在获取月度总览...';
+            try {
+                const response = await fetch(`${API_BASE_URL_SUMMARY}/monthly?year=${year}&month=${month}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token,
+                    },
+                });
+                const data = await response.json();
+                outputDiv.textContent = `状态码: ${response.status}\n\n响应内容:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                outputDiv.textContent = `请求失败: ${error}`;
+                console.error('获取月度总览错误:', error);
+            }
+        }
+
+        async function getYearlySummary() {
+            const token = getAuthToken();
+            if (!token) return;
+
+            const year = document.getElementById('yearlyYear').value;
+
+            if (!year) {
+                alert('请输入年份！');
+                return;
+            }
+
+            outputDiv.textContent = '正在获取年度总览...';
+            try {
+                const response = await fetch(`${API_BASE_URL_SUMMARY}/yearly?year=${year}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token,
+                    },
+                });
+                const data = await response.json();
+                outputDiv.textContent = `状态码: ${response.status}\n\n响应内容:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                outputDiv.textContent = `请求失败: ${error}`;
+                console.error('获取年度总览错误:', error);
+            }
+        }
+    </script>
+</body>
+</html>
